@@ -14,6 +14,7 @@ FONT_ITEM = pygame.font.SysFont("Arial", 26)
 FONT_BTN = pygame.font.SysFont("Arial", 30, bold=True)
 FONT_GAMEOVER = pygame.font.SysFont("Arial", 52, bold=True)
 FONT_MED = pygame.font.SysFont("Arial", 28)
+FONT_SCORE = pygame.font.SysFont("Arial", 32, bold=True)
 
 # Цвета
 snake_colors = {
@@ -30,9 +31,8 @@ snake_colors = {
 
 difficulties = {
     "Easy": 5,
-    "Normal": 10,
-    "Hard": 15,
-    "Ultra": 20
+    "Normal": 7,
+    "Hard": 15
 }
 
 chosen_color = list(snake_colors.values())[0]
@@ -55,7 +55,7 @@ def draw_menu(selected_color, selected_speed):
     section_title = FONT_SECTION.render("Snake Color", True, (230, 230, 230))
     screen.blit(section_title, (color_card.x + 20, color_card.y + 10))
 
-    # --- РАСПОЛОЖЕНИЕ ЦВЕТОВ СЕТКОЙ 3×4 ---
+    # Сетка 3 на 4
     cols = 4
     rows = 3
     cell_w = 140
@@ -100,7 +100,7 @@ def draw_menu(selected_color, selected_speed):
 
         y_offset += 45
 
-    # Start
+    # Кнопка Start
     start_rect = pygame.Rect(WIDTH // 2 - 120, 580, 240, 65)
     draw_rounded_rect(screen, (70, 145, 255), start_rect, 20)
     start_txt = FONT_BTN.render("START", True, (255, 255, 255))
@@ -109,7 +109,7 @@ def draw_menu(selected_color, selected_speed):
     return start_rect
 
 
-#  Игровой цикл
+# Игровой цикл
 def game_loop(snake_color, speed):
     clock = pygame.time.Clock()
 
@@ -117,6 +117,7 @@ def game_loop(snake_color, speed):
     dx, dy = CELL, 0
     food = (random.randrange(0, WIDTH, CELL), random.randrange(0, HEIGHT, CELL))
 
+    score = 0
     game_over = False
 
     while True:
@@ -126,6 +127,8 @@ def game_loop(snake_color, speed):
                 sys.exit()
 
             if event.type == pygame.KEYDOWN:
+
+                # Управление
                 if not game_over:
                     if event.key == pygame.K_UP and dy == 0:
                         dx, dy = 0, -CELL
@@ -136,6 +139,7 @@ def game_loop(snake_color, speed):
                     elif event.key == pygame.K_RIGHT and dx == 0:
                         dx, dy = CELL, 0
 
+                # Рестарт по R
                 if game_over and event.key == pygame.K_r:
                     return
 
@@ -143,6 +147,7 @@ def game_loop(snake_color, speed):
             x, y = snake[0]
             new_head = (x + dx, y + dy)
 
+            # Столкновение
             if (
                 new_head[0] < 0 or new_head[0] >= WIDTH or
                 new_head[1] < 0 or new_head[1] >= HEIGHT or
@@ -152,18 +157,28 @@ def game_loop(snake_color, speed):
 
             snake.insert(0, new_head)
 
+            # Еда
             if new_head == food:
+                score += 1
                 food = (random.randrange(0, WIDTH, CELL), random.randrange(0, HEIGHT, CELL))
             else:
                 snake.pop()
 
+        # Рендер
         screen.fill((20, 20, 28))
 
+        # Еда
         pygame.draw.rect(screen, (255, 70, 70), (*food, CELL, CELL), border_radius=6)
 
+        # Змейка
         for x, y in snake:
             pygame.draw.rect(screen, snake_color, (x, y, CELL, CELL), border_radius=6)
 
+        # Счёт
+        score_txt = FONT_SCORE.render(f"Score: {score}", True, (240, 240, 240))
+        screen.blit(score_txt, (20, 20))
+
+        # Game Over
         if game_over:
             txt = FONT_GAMEOVER.render("GAME OVER", True, (255, 100, 100))
             screen.blit(txt, (WIDTH // 2 - txt.get_width() // 2, HEIGHT // 2 - 70))
@@ -187,6 +202,7 @@ def main():
                 pygame.quit()
                 sys.exit()
 
+            # Нажатие мыши
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = event.pos
 
@@ -218,10 +234,15 @@ def main():
                 # Выбор сложности
                 y = 360 + 70
                 for name, spd in difficulties.items():
-                    rect = pygame.Rect(60 + 40, y, 150, 35)
+                    rect = pygame.Rect(100, y, 150, 35)
                     if rect.collidepoint(mx, my):
                         chosen_speed = spd
                     y += 45
+
+            # ENTER = START
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    game_loop(chosen_color, chosen_speed)
 
 
 main()
