@@ -15,19 +15,24 @@ FONT_BTN = pygame.font.SysFont("Arial", 30, bold=True)
 FONT_GAMEOVER = pygame.font.SysFont("Arial", 52, bold=True)
 FONT_MED = pygame.font.SysFont("Arial", 28)
 
-#МЕНЮ НАСТРОЕК
+# Цвета
 snake_colors = {
-    "Mint": (120, 255, 200),
-    "Neon": (57, 255, 20),
+    "Red": (255, 70, 70),
+    "Orange": (255, 150, 60),
+    "Yellow": (255, 225, 80),
+    "Green": (57, 255, 20),
+    "Cyan": (0, 255, 255),
+    "Blue": (0, 120, 255),
     "Purple": (180, 90, 255),
-    "Orange": (255, 150, 60)
+    "Pink": (255, 100, 200),
+    "White": (240, 240, 240)
 }
 
 difficulties = {
-    "Easy": 7,
-    "Normal": 12,
-    "Hard": 17,
-    "Ultra": 25
+    "Easy": 5,
+    "Normal": 10,
+    "Hard": 15,
+    "Ultra": 20
 }
 
 chosen_color = list(snake_colors.values())[0]
@@ -41,36 +46,44 @@ def draw_rounded_rect(surface, color, rect, radius=12):
 def draw_menu(selected_color, selected_speed):
     screen.fill((14, 14, 18))
 
-    #Заголовок
+    # Заголовок
     title = FONT_TITLE.render("HyperSnake", True, (240, 240, 255))
-    screen.blit(title, (WIDTH//2 - title.get_width()//2, 40))
+    screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 40))
 
-    #Карточка выбора цвета
+    # Карточка цветов
     color_card = pygame.Rect(60, 150, 580, 180)
-    draw_rounded_rect(screen, (25, 25, 32), color_card, 18)
-
     section_title = FONT_SECTION.render("Snake Color", True, (230, 230, 230))
     screen.blit(section_title, (color_card.x + 20, color_card.y + 10))
 
-    y_offset = color_card.y + 70
-    x_offset = color_card.x + 40
+    # --- РАСПОЛОЖЕНИЕ ЦВЕТОВ СЕТКОЙ 3×4 ---
+    cols = 4
+    rows = 3
+    cell_w = 140
+    cell_h = 50
 
-    for name, col in snake_colors.items():
-        box = pygame.Rect(x_offset, y_offset, 35, 35)
+    start_x = color_card.x + 40
+    start_y = color_card.y + 60
+
+    items = list(snake_colors.items())
+
+    for i, (name, col) in enumerate(items):
+        col_i = i // rows
+        row_i = i % rows
+
+        x = start_x + col_i * cell_w
+        y = start_y + row_i * cell_h
+
+        box = pygame.Rect(x, y, 35, 35)
         pygame.draw.rect(screen, col, box, border_radius=8)
 
         label = FONT_ITEM.render(name, True, (230, 230, 230))
-        screen.blit(label, (x_offset + 50, y_offset + 5))
+        screen.blit(label, (x + 45, y + 5))
 
         if col == selected_color:
             pygame.draw.rect(screen, (255, 255, 255), box, 3, border_radius=8)
 
-        y_offset += 50
-
-    #Карточка выбора сложности
+    # Карточка сложности
     diff_card = pygame.Rect(60, 360, 580, 180)
-    draw_rounded_rect(screen, (25, 25, 32), diff_card, 18)
-
     section_title = FONT_SECTION.render("Difficulty", True, (230, 230, 230))
     screen.blit(section_title, (diff_card.x + 20, diff_card.y + 10))
 
@@ -87,8 +100,8 @@ def draw_menu(selected_color, selected_speed):
 
         y_offset += 45
 
-    #Кнопка Start
-    start_rect = pygame.Rect(WIDTH//2 - 120, 580, 240, 65)
+    # Start
+    start_rect = pygame.Rect(WIDTH // 2 - 120, 580, 240, 65)
     draw_rounded_rect(screen, (70, 145, 255), start_rect, 20)
     start_txt = FONT_BTN.render("START", True, (255, 255, 255))
     screen.blit(start_txt, (start_rect.x + 70, start_rect.y + 14))
@@ -96,17 +109,17 @@ def draw_menu(selected_color, selected_speed):
     return start_rect
 
 
-#  ИГРА
+#  Игровой цикл
 def game_loop(snake_color, speed):
     clock = pygame.time.Clock()
 
-    snake = [(WIDTH//2, HEIGHT//2)]
+    snake = [(WIDTH // 2, HEIGHT // 2)]
     dx, dy = CELL, 0
     food = (random.randrange(0, WIDTH, CELL), random.randrange(0, HEIGHT, CELL))
 
     game_over = False
 
-    while True:  # остаёмся в цикле до выхода
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -124,15 +137,17 @@ def game_loop(snake_color, speed):
                         dx, dy = CELL, 0
 
                 if game_over and event.key == pygame.K_r:
-                    return  # restart
+                    return
 
         if not game_over:
             x, y = snake[0]
             new_head = (x + dx, y + dy)
 
-            if (new_head[0] < 0 or new_head[0] >= WIDTH or
+            if (
+                new_head[0] < 0 or new_head[0] >= WIDTH or
                 new_head[1] < 0 or new_head[1] >= HEIGHT or
-                new_head in snake):
+                new_head in snake
+            ):
                 game_over = True
 
             snake.insert(0, new_head)
@@ -142,7 +157,6 @@ def game_loop(snake_color, speed):
             else:
                 snake.pop()
 
-        #render
         screen.fill((20, 20, 28))
 
         pygame.draw.rect(screen, (255, 70, 70), (*food, CELL, CELL), border_radius=6)
@@ -152,16 +166,16 @@ def game_loop(snake_color, speed):
 
         if game_over:
             txt = FONT_GAMEOVER.render("GAME OVER", True, (255, 100, 100))
-            screen.blit(txt, (WIDTH//2 - txt.get_width()//2, HEIGHT//2 - 70))
+            screen.blit(txt, (WIDTH // 2 - txt.get_width() // 2, HEIGHT // 2 - 70))
 
             restart_txt = FONT_MED.render("Press R to Restart", True, (235, 235, 235))
-            screen.blit(restart_txt, (WIDTH//2 - restart_txt.get_width()//2, HEIGHT//2))
+            screen.blit(restart_txt, (WIDTH // 2 - restart_txt.get_width() // 2, HEIGHT // 2))
 
         pygame.display.flip()
         clock.tick(speed)
 
 
-#ГЛАВНОЕ МЕНЮ
+# Главное меню
 def main():
     global chosen_color, chosen_speed
     while True:
@@ -181,13 +195,25 @@ def main():
                     game_loop(chosen_color, chosen_speed)
 
                 # Выбор цвета
-                y = 150 + 70
-                x = 60 + 40
-                for name, col in snake_colors.items():
+                cols = 4
+                rows = 3
+                cell_w = 140
+                cell_h = 50
+                start_x = 60 + 40
+                start_y = 150 + 60
+
+                items = list(snake_colors.items())
+
+                for i, (name, col) in enumerate(items):
+                    col_i = i // rows
+                    row_i = i % rows
+
+                    x = start_x + col_i * cell_w
+                    y = start_y + row_i * cell_h
+
                     rect = pygame.Rect(x, y, 35, 35)
                     if rect.collidepoint(mx, my):
                         chosen_color = col
-                    y += 50
 
                 # Выбор сложности
                 y = 360 + 70
