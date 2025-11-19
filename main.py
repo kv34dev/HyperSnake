@@ -35,7 +35,7 @@ difficulties = {
     "Hard": 15
 }
 
-chosen_color = list(snake_colors.values())[0]
+chosen_color = list(snake_colors.values())[3]
 chosen_speed = list(difficulties.values())[1]
 
 
